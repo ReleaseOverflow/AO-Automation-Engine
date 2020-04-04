@@ -6,6 +6,9 @@ SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 #Include, .\_assembly\includes\IniLibrary.toolkit
 #SingleInstance, Force
 
+
+
+
 GLOBAL EngineTitle := "AUTOMATION ENGINE"
 GLOBAL EngineError0x0 := "Missing Files"
 GLOBAL EngineError0x1 := "Missing Info"
@@ -27,6 +30,7 @@ GLOBAL IniKeyErrorB := "NULL READ ERROR @ BSpeedDefault KEY - SECTION: VELOCITY"
 GLOBAL IniKeyErrorN := "NULL READ ERROR @ NSpeedDefault KEY - SECTION: VELOCITY"
 GLOBAL IniKeyErrorM := "NULL READ ERROR @ MSpeedDefault KEY - SECTION: VELOCITY"
 GLOBAL IniKeyErrorF7 := "NULL READ ERROR @ F7SpeedDefault KEY - SECTION: VELOCITY"
+GLOBAL IniKeyErrorAOIDlist := "NULL READ ERROR @ AutoUpdateAOIDlist KEY - SECTION: ENGINE"
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -67,15 +71,22 @@ GenerateEngineID := ID_char0x01 . ID_char0x02 . ID_char0x03 . ID_int0x00 . ID_in
     }
     Else {
     MsgBox, 48, %EngineTitle% - %EngineError0x0%, The looper_core.ini file doesn't exist.
+    
 
 Ini := new AhkIni(".\looper_core.ini")	;will create new ini if nothing exists
 			Msgbox, 64, %EngineTitle% - %EngineInfo0x0%, Configuration File Is Now Being Constructed With Hardcoded Defaults.
 Sleep, 500
+ini.write("ENGINE", "AutoUpdateAOIDlist", "0", "`n`    Automatically Update AO Window List `n` `n` `n` `n` `n`")
 ini.write("ENGINE", "AOIA_InstallPath", "Replace_Me", "`n`    Example: `n` D:\Program Files (x86)\AO Item Assistant+ `n` `n` `n`")
 ini.write("ENGINE", "AO_OldEngine_InstallPath", "Replace_Me", "`n`    Example: `n` C:\Program Files (x86)\Funcom\Anarchy Online `n` `n` `n`")
 ini.write("ENGINE", "RunWithAdmin", "0", "`n`    Toggle Running With Administrator `n` `n`", "                   ENGINE OPTIONS (Configure these) `n`")
-ini.write("CLIENT", "RaidLeader", "Johnxcrat", "`n`    Current character that sends tabs `n`    (CASE SENSITIVE) `n` `n` `n`", "                   CLIENT OPTIONS (Configure these) `n` `n`")
-ini.write("VELOCITY", "F7SpeedDefault", "8100", "`n`    F7 Key LoopRate Default Speed `n` `n`")
+ini.write("CLIENT", "RaidLeader", "Johnxcrat", "`n`    Current character that sends tabs `n`    (CASE SENSITIVE) `n` `n` `n` `n` `n`", "                   CLIENT OPTIONS (Configure these) `n` `n`")
+ini.write("SOUND", "QuickLaunch_AOIA", "1", "`n`    Plays Sound when Quick Launching AOIA `n` `n` `n` `n` `n`")
+ini.write("SOUND", "QuickLaunch_AOoldEngineSteam", "1", "`n`    Plays Sound when Quick Launching AO STEAM `n` `n` `n`")
+ini.write("SOUND", "QuickLaunch_AOoldEngine", "1", "`n`    Plays Sound when Quick Launching AO `n` `n` `n`")
+ini.write("SOUND", "LoopEnd", "1", "`n`    Plays Sound on loop end `n` `n` `n`")
+ini.write("SOUND", "LoopStart", "1", "`n`    Plays Sound on loop start `n` `n` `n`", "                   SOUND OPTIONS (Configure these) `n` `n`")
+ini.write("VELOCITY", "F7SpeedDefault", "8100", "`n`    F7 Key LoopRate Default Speed `n` `n` `n` `n` `n`")
 ini.write("VELOCITY", "MSpeedDefault", "8000", "`n`    M Key LoopRate Default Speed `n` `n`")
 ini.write("VELOCITY", "NSpeedDefault", "7900", "`n`    N Key LoopRate Default Speed `n` `n`")
 ini.write("VELOCITY", "BSpeedDefault", "7800", "`n`    B Key LoopRate Default Speed `n` `n`")
@@ -88,6 +99,7 @@ ini.write("VELOCITY", "FSpeedDefault", "7200", "`n`    F Key LoopRate Default Sp
 ini.write("VELOCITY", "RSpeedDefault", "7100", "`n`    R Key LoopRate Default Speed `n` `n`")
 ini.write("VELOCITY", "ESpeedDefault", "7000", "`n`    E Key LoopRate Default Speed `n` `n`")
 ini.write("VELOCITY", "TabSpeedDefault", "5000", "`n`    Tab Key LoopRate Default Speed (RaidLeader) `n` `n` `n`", "                   DEFAULT KEY LOOPING SPEEDS (MILLISECONDS)`n` `n`")
+ini.write("DEBUG", "AutoAOIDUpdateMsg", "0", "`n`    Output TrayBallon Message On Each Loop `n` `n` `n`", "                   FOR DEVELOPER TESTING (CAN SAFELY IGNORE)`n` `n`")
 ini.Save()
 Sleep, 500
 Reload
@@ -304,6 +316,8 @@ IniRead, MVelocity, looper_core.ini, VELOCITY, MSpeedDefault, %IniKeyErrorM%
 IniRead, F7Velocity, looper_core.ini, VELOCITY, F7SpeedDefault, %IniKeyErrorF7%
 
 
+
+
 ; <COMPILER: v1.1.26.01>
 WinGet, aoid, List, Anarchy Online
 ; Gui +LastFound +ToolWindow  ; +ToolWindow avoids a taskbar button and an alt-tab menu item.
@@ -369,6 +383,25 @@ Gui, Add, Text, x323 y352 vStatic14, 0:0:00  ;;  F7 time format
 ; Gui, Add, DropDownList, x10 vSpeed, 1 second||3 seconds|5 seconds|10 seconds
 ; Gui, Add, DropDownList, x11 y356 vSpeed, 1 second||3 seconds|5 seconds|10 seconds
 ; Gui, Add, Button, g1 x10, On
+IniRead, DoAOIDUpdate, looper_core.ini, ENGINE, AutoUpdateAOIDlist, %IniKeyErrorAOIDlist%
+If(DoAOIDUpdate = 1)
+{
+    GLOBAL AOIAUpdaterState := "checked1"
+}
+If(DoAOIDUpdate = 0)
+{
+    GLOBAL AOIAUpdaterState := "checked0"
+}
+; Gui, Add, Checkbox, x80 y409 w30 h20 gToggleIDupdater vToggleIDupdate checked0, ;Toggle Auto IDlist Update
+Gui, Add, Checkbox, x80 y430 w30 h20 gToggleIDupdater vToggleIDupdate %AOIAUpdaterState%, ;Toggle Auto IDlist Update
+Gui, Add, Text, x78 y449 +BackgroundTrans, AUTO UPDATE AOIDs
+Gui, Add, Button, x110 y426 h19 gManualAOIDUpdate, UPDATE AOIDs
+IniRead, RaidLeadCurrent, looper_core.ini, CLIENT, RaidLeader, NULL @ RaidLeader
+Gui, Add, Text, x92 y369 +BackgroundTrans, RAID
+Gui, Add, Text, x90 y384 +BackgroundTrans, LEAD:
+Gui, Add, Edit, x124 y380 w70 h20 vRaidLead, %RaidLeadCurrent%
+Gui, Add, Button, x83 y403 h19 gUpdateRaidLead, SAVE RAIDLEADER
+; Gui, Add, Checkbox, x80 y409 w30 h20 gToggleIDupdater vToggleIDupdate checked1, ;Toggle Auto IDlist Update
 Gui, Add, Button, x9 y327 gSaveCurrentVelToDefaults, Save Speeds
 Gui, Add, Button, x9 y353 gManualMSCalculator, Calculate MS
 Gui, Add, Button, x11 y382 g1, On
@@ -376,9 +409,9 @@ Gui, Add, Button, x11 y382 g1, On
 Gui, Add, Button, x47 y382 g2, Off
 
 Gui, Add, Text, x9 y193 +BackgroundTrans, QUICK LAUNCH
-Gui, Add, Picture, x68 y210 gAOIA, %A_ScriptDir%\gui\AOIA.png
-Gui, Add, Picture, x10 y210 gOldClientNoSteam, %A_ScriptDir%\gui\oldclient_nosteam.png
-Gui, Add, Picture, x10 y269 gOldClientSteam, %A_ScriptDir%\gui\oldclient_steam.png
+Gui, Add, Picture, x64 y210 gAOIA, %A_ScriptDir%\gui\AOIA.png
+Gui, Add, Picture, x6 y210 gOldClientNoSteam, %A_ScriptDir%\gui\oldclient_nosteam.png
+Gui, Add, Picture, x6 y269 gOldClientSteam, %A_ScriptDir%\gui\oldclient_steam.png
 
 Gui, Add, Picture, x21 y420 +BackgroundTrans vActive, %A_ScriptDir%\gui\loop_active.png
 Gui, Add, Picture, x21 y420 +BackgroundTrans vInactive, %A_ScriptDir%\gui\loop_inactive.png
@@ -387,11 +420,20 @@ Gui, Add, Text, x317 y112 +BackgroundTrans, REPORT A BUG
 Gui, Add, Text, x15 y406 +BackgroundTrans, Loop State
 Gui, Show, w404 h464, Automation Engine
 Gui, Submit, NoHide
+If(ToggleIDupdate = 1)
+{
 SetTimer, RefreshAOIDlist, 3500
+}
+If(ToggleIDupdate = 0)
+{
+SetTimer, RefreshAOIDlist, Off
+}
+
 Return
 home::
 1:
 ;;//////////////////////////////////////////////////////////////////////////
+SOUNDloopstart()
 Gui, Submit, NoHide
 Sleep, 250
 ; GuiControlGet, TabSpeed
@@ -524,6 +566,7 @@ end::
 ; mloop = 0
 ; f7loop = 0
 2:
+SOUNDloopend()
 $stop := 1
 SetTimer, TimerEventTAB, Off
 SetTimer, TimerEventE, Off
@@ -914,19 +957,62 @@ IniRead, CurAOIAInstallPath, looper_core.ini, ENGINE, AOIA_InstallPath,  INI KEY
         if (CurAOIAInstallPath = "Replace_Me")
     {
         Sleep, 10
-        MsgBox, 48, %EngineTitle% - %EngineError0x1%, You must first enter your Anarchy Online Item Assistant Install directory in the looper_core.ini file!
+        MsgBox, 4, %EngineTitle% - %EngineError0x1%, You must first enter your Anarchy Online Item Assistant Install directory.  `n` `n`                                   Would you like to do this now?
+        IfMsgBox, Yes
+        {
+            InputBox, AOIADirInput, %EngineTitle% - QuickLaunch AOIA,         Please enter your AOIA install directory `n` `n` EXAMPLE: `n`     D:\Program Files (x86)\AO Item Assistant+, , 400, 180
+            if ErrorLevel
+            {
+            ; MsgBox, 48, , CANCEL was pressed.
+            Return
+            }
+            else
+            {
+            IniWrite, %A_Space%%AOIADirInput%, looper_core.ini, ENGINE, AOIA_InstallPath
+            FileDelete, aoia.lnk
+            Sleep, 100
+            IniRead, CurAOIAInstallPath, looper_core.ini, ENGINE, AOIA_InstallPath,  INI KEY READ ERROR @ [ENGINE] - AOIA_InstallPath | The value is attempting to return null.
+            Sleep, 200
+            FileCreateShortcut, %CurAOIAInstallPath%\ItemAssistant.exe, aoia.lnk, %CurAOIAInstallPath%, , Runs Anarchy Online Item Assistant (AutoGenerated)
+            Sleep, 350
+            SOUNDquicklaunchAOIA()
+            Run, aoia.lnk
+            ; AOIAifExist()
+            }
+        }
+        IfMsgBox, No
+        {
+            Sleep, 50
+            Return
+        }
     }
     Else {
-    SoundBeep
+    SOUNDquicklaunchAOIA()
     FileDelete, aoia.lnk
     Sleep, 50
     IniRead, CurAOIAInstallPath, looper_core.ini, ENGINE, AOIA_InstallPath,  INI KEY READ ERROR @ [ENGINE] - AOIA_InstallPath | The value is attempting to return null.
     Sleep, 200
     FileCreateShortcut, %CurAOIAInstallPath%\ItemAssistant.exe, aoia.lnk, %CurAOIAInstallPath%, , Runs Anarchy Online Item Assistant (AutoGenerated)
     Sleep, 350
+    ; AOIAifExist()
     Run, aoia.lnk
     }
 Return
+
+; AOIAifExist()
+; {
+;     if FileExist("aoia.lnk")
+;     {
+;         Sleep, 10
+;         Run, aoia.lnk
+;     }
+;     Else {
+;         Sleep, 10
+;     }
+;     Return
+; }
+
+
 
 
 OldClientNoSteam:
@@ -934,10 +1020,37 @@ IniRead, CurOldEngineInstallPath, looper_core.ini, ENGINE, AO_OldEngine_InstallP
         if (CurOldEngineInstallPath = "Replace_Me")
     {
         Sleep, 10
-        MsgBox, 48, %EngineTitle% - %EngineError0x1%, You must first enter your Anarchy Online Old Engine Install directory in the looper_core.ini file!
+        MsgBox, 4, %EngineTitle% - %EngineError0x1%, You must first enter your Anarchy Online Old Engine Install directory.  `n` `n`                                Would you like to do this now?
+        IfMsgBox, Yes
+        {
+            InputBox, AOoldEngineInput, %EngineTitle% - QuickLaunch AO,         Please enter your AO Old Engine install directory `n` `n` EXAMPLE: `n`     C:\Program Files (x86)\Funcom\Anarchy Online, , 400, 180
+            if ErrorLevel
+            {
+            ; MsgBox, 48, , CANCEL was pressed.
+            Return
+            }
+            else
+            {
+            IniWrite, %A_Space%%AOoldEngineInput%, looper_core.ini, ENGINE, AO_OldEngine_InstallPath
+            FileDelete, ao_oldengine_nosteam.lnk
+            Sleep, 100
+            IniRead, CurAOInstallPath, looper_core.ini, ENGINE, AO_OldEngine_InstallPath,  INI KEY READ ERROR @ [ENGINE] - AO_OldEngine_InstallPath | The value is attempting to return null.
+            Sleep, 200
+            FileCreateShortcut, %CurAOInstallPath%\AnarchyOnline.exe, ao_oldengine_nosteam.lnk, %CurAOInstallPath%, , Runs Anarchy Online Old Engine (AutoGenerated)
+            Sleep, 350
+            SOUNDquicklaunchAO()
+            Run, ao_oldengine_nosteam.lnk
+            ; AOIAifExist()
+            }
+        }
+        IfMsgBox, No
+        {
+            Sleep, 50
+            Return
+        }
     }
     Else {
-    SoundBeep
+    SOUNDquicklaunchAO()
     FileDelete, ao_oldengine_nosteam.lnk
     Sleep, 50
     IniRead, CurOldEngineInstallPath, looper_core.ini, ENGINE, AO_OldEngine_InstallPath,  INI KEY READ ERROR @ [ENGINE] - AO_OldEngine_InstallPath | The value is attempting to return null.
@@ -950,7 +1063,7 @@ Return
 
 
 OldClientSteam:
-SoundBeep
+SOUNDquicklaunchAOSTEAM()
 Run, "steam://run/396280/"
 Return
 
@@ -959,10 +1072,30 @@ Return
 
 RefreshAOIDlist:
 WinGet, aoid, List, Anarchy Online
+IniRead, AOIDUpdateDebug, looper_core.ini, DEBUG, AutoAOIDUpdateMsg, %IniKeyErrorAOIDlist%
+If(AOIDUpdateDebug = 1)
+{
+TrayTip , AUTOMATION ENGINE, AOID LIST AUTO UPDATED, 2,
+}
 Return
 
 
 
+ManualAOIDUpdate:
+WinGet, aoid, List, Anarchy Online
+IniRead, AOIDUpdateDebug, looper_core.ini, DEBUG, AutoAOIDUpdateMsg, %IniKeyErrorAOIDlist%
+; If(AOIDUpdateDebug = 1)
+; {
+TrayTip , AUTOMATION ENGINE, AOID LIST MANUALLY UPDATED, 2,
+; }
+Return
+
+
+UpdateRaidLead:
+Gui, Submit, NoHide
+Sleep, 5
+IniWrite, %A_Space%%RaidLead%, looper_core.ini, CLIENT, RaidLeader
+Return
 
 
 
@@ -989,7 +1122,6 @@ TimeFormatHMS(milli, ByRef hours=0, ByRef mins=0, ByRef secs=0, secPercision=0)
 
 
 RandomCapsLetter()
-
 {
 
 	Random, OutputVar , 65, 90 ;Ascii codes for A-Z
@@ -999,7 +1131,6 @@ RandomCapsLetter()
 }
 
 RandomLowerLetter()
-
 {
 
 	Random, OutputVar , 97, 122 ;Ascii codes for a-z
@@ -1007,6 +1138,81 @@ RandomLowerLetter()
 	Return Chr(OutputVar) ;Turn from number to char & return
 
 }
+
+
+
+
+
+;;////////////////////////////////////SOUND FUNCTIONS\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\;;
+SOUNDquicklaunchAO()
+{
+    IniRead, SNDquicklaunchAO, looper_core.ini, SOUND, QuickLaunch_AOoldEngine, Default
+    if(SNDquicklaunchAO = 1)
+    {
+    SoundBeep
+    Return
+    }
+}
+
+
+SOUNDquicklaunchAOSTEAM()
+{
+    IniRead, SNDquicklaunchAOSTEAM, looper_core.ini, SOUND, QuickLaunch_AOoldEngineSteam, Default
+    if(SNDquicklaunchAOSTEAM = 1)
+    {
+    SoundBeep
+    Return
+    }
+}
+
+
+SOUNDquicklaunchAOIA()
+{
+    IniRead, SNDquicklaunchAOIA, looper_core.ini, SOUND, QuickLaunch_AOIA, Default
+    if(SNDquicklaunchAOIA = 1)
+    {
+    SoundBeep
+    Return
+    }
+}
+
+
+
+
+SOUNDloopstart()
+{
+    IniRead, SNDloopstart, looper_core.ini, SOUND, LoopStart, Default
+    if(SNDloopstart = 1)
+    {
+    SoundBeep
+    Return
+    }
+}
+
+SOUNDloopend()
+{
+    IniRead, SNDloopend, looper_core.ini, SOUND, LoopEnd, Default
+    if(SNDloopend = 1)
+    {
+    SoundBeep
+    Return
+    }
+}
+;;////////////////////////////////////SOUND FUNCTIONS\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\;;
+
+
+
+ToggleIDupdater:
+Gui, Submit, NoHide
+If(ToggleIDupdate = 1)
+{
+SetTimer, RefreshAOIDlist, 3500
+}
+If(ToggleIDupdate = 0)
+{
+SetTimer, RefreshAOIDlist, Off
+}
+Return
 
 
 
