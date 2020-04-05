@@ -10,6 +10,10 @@ SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 
 
 GLOBAL EngineTitle := "AUTOMATION ENGINE"
+GLOBAL EngineVersion := "4.00.927A"
+GLOBAL EngineBuild := "BUILD 235108"
+
+
 GLOBAL EngineError0x0 := "Missing Files"
 GLOBAL EngineError0x1 := "Missing Info"
 GLOBAL EngineInfo0x0 := "Reconstruction"
@@ -58,6 +62,34 @@ GenerateEngineID := ID_char0x01 . ID_char0x02 . ID_char0x03 . ID_int0x00 . ID_in
     %GenerateEngineID%
     ), %A_ScriptDir%\ID\machine_id.txt
     Sleep, 500
+    }
+
+    if FileExist("ID\engine_version")
+    {
+        Sleep, 10
+    }
+    Else {
+    FileCreateDir, %A_ScriptDir%\ID
+    Sleep, 500
+    FileAppend,
+    (
+    %EngineVersion%
+    ), %A_ScriptDir%\ID\engine_version
+    Sleep, 200
+    }
+
+    if FileExist("ID\engine_build")
+    {
+        Sleep, 10
+    }
+    Else {
+    FileCreateDir, %A_ScriptDir%\ID
+    Sleep, 500
+    FileAppend,
+    (
+    %EngineBuild%
+    ), %A_ScriptDir%\ID\engine_build
+    Sleep, 200
     }
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
