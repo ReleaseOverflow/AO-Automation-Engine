@@ -10,8 +10,8 @@ SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 
 
 GLOBAL EngineTitle := "AUTOMATION ENGINE"
-GLOBAL EngineVersion := "4.00.927A"
-GLOBAL EngineBuild := "BUILD 235108"
+GLOBAL EngineVersion := "4.00.927C"
+GLOBAL EngineBuild := "BUILD 235109"
 
 
 GLOBAL EngineError0x0 := "Missing Files"
